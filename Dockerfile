@@ -13,7 +13,6 @@ RUN dpkg --add-architecture i386 \
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
         && rm -rf /var/lib/apt/lists/* \
         && curl -sSL https://github.com/mattrobenolt/envtpl/releases/download/0.1.0/envtpl-linux-amd64 -o envtpl \
-        && echo "90c40d624e0ce40d62a0ac132767bcd6c267ed55 envtpl" | sha1sum -c - \
         && chmod +x envtpl \
         && mv envtpl /usr/local/bin/ \
         && apt-get purge -y --auto-remove curl
@@ -24,30 +23,10 @@ ENV UT2004_PATCH_DOWNLOAD_URL http://gameservermanagers.com/files/ut2004/ut2004-
 ENV UT2004_PATCH_DOWNLOAD_SHA1 a8cc33877a02a0a09c288b5fc248efde282f7bdf
 ENV ADMIN_NAME admin
 ENV ADMIN_PASSWORD admin1
-ENV GAME_PASSWORD 
+ENV GAME_PASSWORD password
 ENV TERM xterm
 
 VOLUME /config
-
-RUN buildDeps='curl bzip2 unzip' \
-        && set -x \
-        && apt-get update && apt-get install -y $buildDeps --no-install-recommends \
-        && rm -rf /var/lib/apt/lists/* \
-        && mkdir -p /config/ut2004 \
-        && curl -sSL "$UT2004_DOWNLOAD_URL" -o ut2004.zip \
-        && echo "$UT2004_DOWNLOAD_SHA1 ut2004.zip" | sha1sum -c - \
-        && curl -sSL "$UT2004_PATCH_DOWNLOAD_URL" -o ut2004_patch.tar.bz2 \
-        && echo "$UT2004_PATCH_DOWNLOAD_SHA1 ut2004_patch.tar.bz2" | sha1sum -c - \
-        && unzip ut2004.zip -d /config/ut2004 \
-        && tar -xvjf ut2004_patch.tar.bz2 -C /config/ut2004 UT2004-Patch/ --strip-components=1 \
-        && rm ut2004.zip ut2004_patch.tar.bz2 \
-        # Fix broken CSS
-        # See: http://forums.tripwireinteractive.com/showpost.php?p=585435&postcount=13
-        && sed -i 's/none}/none;/g' "/config/ut2004/Web/ServerAdmin/ut2003.css" \
-        && sed -i 's/underline}/underline;/g' "/config/ut2004/Web/ServerAdmin/ut2003.css" \
-        # Remove the included ini config
-        && rm /config/ut2004/System/UT2004.ini \
-        && apt-get purge -y --auto-remove $buildDeps
 
 # Add in our config template
 COPY UT2004.ini.tpl /config/ut2004/System/
